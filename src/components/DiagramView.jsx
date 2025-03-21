@@ -8,13 +8,19 @@ import ReactFlow, {
   useNodesState,
   useEdgesState,
   Panel,
+  useReactFlow,
+  BaseEdge,
+  EdgeLabelRenderer,
+  getStraightPath,
+  applyNodeChanges,
+  applyEdgeChanges
 } from 'reactflow';
 import dagre from 'dagre';
 import 'reactflow/dist/style.css';
 import SearchBar from './SearchBar';
 import { debounce } from 'lodash';
 
-// Mover la definición de los componentes de nodo fuera del componente principal
+// Primero definimos todos los componentes de nodos
 const ObjectNode = ({ data, id, selected }) => {
   const collapsed = data.collapsed || false;
   const hasChildren = data.childrenCount && data.childrenCount > 0;
@@ -128,15 +134,60 @@ const ArrayNode = ({ data, id, selected }) => {
   );
 };
 
-// Definir nodeTypes fuera del componente principal como un objeto constante
-const nodeTypeDefinitions = {
+// Luego definimos el componente CustomEdge
+const CustomEdge = ({ id, source, target, sourceX, sourceY, targetX, targetY, sourcePosition, targetPosition, data, style = {} }) => {
+  const [edgePath, labelX, labelY] = getStraightPath({
+    sourceX,
+    sourceY,
+    sourcePosition,
+    targetX,
+    targetY,
+    targetPosition,
+  });
+
+  return (
+    <>
+      <BaseEdge id={id} path={edgePath} style={{
+        ...style,
+        stroke: '#555',
+        strokeWidth: 1.5,
+      }} />
+      {data?.label && (
+        <EdgeLabelRenderer>
+          <div
+            style={{
+              position: 'absolute',
+              transform: `translate(-50%, -50%) translate(${labelX}px,${labelY}px)`,
+              fontSize: 12,
+              pointerEvents: 'all',
+              backgroundColor: 'rgba(0, 0, 0, 0.5)',
+              padding: '2px 4px',
+              borderRadius: '4px',
+              color: '#fff',
+            }}
+            className="nodrag nopan"
+          >
+            {data.label}
+          </div>
+        </EdgeLabelRenderer>
+      )}
+    </>
+  );
+};
+
+// Definir los tipos de nodos y bordes fuera del componente
+const NODE_TYPES = {
   objectNode: ObjectNode,
   arrayNode: ArrayNode,
 };
 
+const EDGE_TYPES = {
+  customEdge: CustomEdge,
+};
+
 const DiagramView = ({ jsonData, darkMode = true }) => {
-  const [nodes, setNodes, onNodesChange] = useNodesState([]);
-  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+  const [nodes, setNodes] = useNodesState([]);
+  const [edges, setEdges] = useEdgesState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [layoutDirection, setLayoutDirection] = useState('LR');
   const [levelThreshold, setLevelThreshold] = useState(999);
@@ -147,8 +198,11 @@ const DiagramView = ({ jsonData, darkMode = true }) => {
   // Estado para almacenar el nodo seleccionado
   const [selectedNodeId, setSelectedNodeId] = useState(null);
   
-  // Memoizar nodeTypes para evitar recreaciśon
-  const nodeTypes = useMemo(() => nodeTypeDefinitions, []);
+  // Referencias estables para evitar problemas de dependencias circulares
+  const nodesRef = useRef(nodes);
+  useEffect(() => {
+    nodesRef.current = nodes;
+  }, [nodes]);
   
   // Función auxiliar para estimar el tamaño de un nodo basado en su contenido
   const estimateNodeSize = useCallback((node) => {
@@ -207,75 +261,130 @@ const DiagramView = ({ jsonData, darkMode = true }) => {
   
   // Función de layout mejorada con espaciado más compacto
   const getLayoutedElements = useCallback((nodes, edges, direction = 'LR') => {
-    if (!nodes.length) return { nodes, edges };
+    if (!nodes || !nodes.length) return { nodes: [], edges: [] };
     
+    // Crear una copia segura de los nodos y aristas
+    const safeNodes = [...nodes].filter(node => node && node.id);
+    const safeEdges = [...edges].filter(edge => 
+      edge && edge.id && edge.source && edge.target &&
+      safeNodes.some(node => node.id === edge.source) &&
+      safeNodes.some(node => node.id === edge.target)
+    );
+    
+    if (!safeNodes.length) return { nodes: safeNodes, edges: safeEdges };
+    
+    // Crear un nuevo grafo para el layout
     const dagreGraph = new dagre.graphlib.Graph();
     dagreGraph.setDefaultEdgeLabel(() => ({}));
 
-    // Configuración base según el modo de tamaño (valores reducidos)
-    let baseSep = nodeSizeMode === 'compact' ? 30 : 
-                 nodeSizeMode === 'expanded' ? 70 : 50;
+    // Ajustes mejorados para el espaciado basado en el modo seleccionado
+    let baseSep = nodeSizeMode === 'compact' ? 40 : 
+                 nodeSizeMode === 'expanded' ? 80 : 60;
     
-    // Cálculo más progresivo del espaciado según cantidad de nodos
-    const nodeCountFactor = Math.min(1 + (nodes.length / 200), 1.5);
+    // Ajustar espaciado basado en cantidad de nodos (espaciado progresivo)
+    let nodeSepFactor = 1.0;
+    let rankSepFactor = 1.0;
     
-    // Espaciado horizontal y vertical con escala adaptativa
-    let nodesep = baseSep * (direction === 'LR' ? 1.2 : 1.0) * nodeCountFactor;
-    let ranksep = baseSep * (direction === 'TB' ? 1.2 : 1.0) * nodeCountFactor;
-    
-    // Para grafos realmente grandes, limitar el crecimiento del espaciado
-    if (nodes.length > 100) {
-      nodesep = Math.min(nodesep, baseSep * 1.3);
-      ranksep = Math.min(ranksep, baseSep * 1.3);
+    // Para gráficos con pocos nodos, dar más espacio
+    if (safeNodes.length < 20) {
+      nodeSepFactor = 1.5;
+      rankSepFactor = 1.5;
+    } else if (safeNodes.length > 100) {
+      // Para gráficos muy grandes, optimizar el espacio
+      nodeSepFactor = 0.8;
+      rankSepFactor = 0.8;
     }
     
-    // Configuración del grafo para el algoritmo dagre
+    // Aplicar factores de espaciado según dirección
+    const nodesep = baseSep * (direction === 'LR' ? 1.2 : 1.0) * nodeSepFactor;
+    const ranksep = baseSep * (direction === 'TB' ? 1.2 : 1.0) * rankSepFactor;
+    
+    // Configuración mejorada del grafo para evitar superposiciones
     dagreGraph.setGraph({ 
       rankdir: direction,
       ranksep,
       nodesep,
-      marginx: 30,        // Margen reducido
-      marginy: 30,        // Margen reducido
+      marginx: 50,
+      marginy: 50,
       align: direction === 'LR' ? 'UL' : 'DL',
-      ranker: 'network-simplex',
-      acyclicer: 'greedy'
+      ranker: 'tight-tree', // Usar un algoritmo optimizado para árboles
+      acyclicer: 'greedy',
+      // Utilizar separación forzada para evitar superposiciones
+      edgesep: baseSep * 0.4,
+      // Preferir layout más compacto pero sin superposiciones
+      rankSep: ranksep,
+      // Maximizar la utilización del espacio
+      nestingRoot: null,
+      // Aplicar fuerza de antisolapamiento
+      gravity: 0.3,
     });
 
-    // Añadir nodos al grafo con tamaños estimados según su contenido
-    nodes.forEach((node) => {
-      const { width, height } = estimateNodeSize(node);
-      dagreGraph.setNode(node.id, { width, height });
+    // Añadir nodos al grafo con tamaños precisos
+    safeNodes.forEach((node) => {
+      try {
+        // Obtener dimensiones precisas con margen adicional para prevenir solapamientos
+        const { width, height } = estimateNodeSize(node);
+        // Añadir margen de seguridad para evitar superposiciones
+        const safetyMargin = 15;
+        
+        dagreGraph.setNode(node.id, { 
+          width: width + safetyMargin, 
+          height: height + safetyMargin
+        });
+      } catch (error) {
+        console.warn(`Error procesando nodo ${node.id}:`, error);
+        // Usar tamaño predeterminado con margen si hay error
+        dagreGraph.setNode(node.id, { width: 220, height: 65 });
+      }
     });
 
     // Añadir aristas al grafo
-    edges.forEach((edge) => {
-      dagreGraph.setEdge(edge.source, edge.target);
+    safeEdges.forEach((edge) => {
+      try {
+        dagreGraph.setEdge(edge.source, edge.target);
+      } catch (error) {
+        console.warn(`Error procesando arista ${edge.id}:`, error);
+      }
     });
 
-    // Calcular el layout
-    dagre.layout(dagreGraph);
+    // Calcular el layout con manejo de errores
+    try {
+      dagre.layout(dagreGraph);
+    } catch (error) {
+      console.error("Error en el cálculo del layout:", error);
+      return { nodes: safeNodes, edges: safeEdges };
+    }
 
-    // Obtener las posiciones calculadas con margen más compacto
-    const layoutedNodes = nodes.map((node) => {
-      const nodeWithPosition = dagreGraph.node(node.id);
-      const { width, height } = estimateNodeSize(node);
-      
-      // Añadir un mínimo factor de aleatoriedad solo para nodos muy grandes
-      const jitterFactor = nodes.length > 150 ? 3 : 0;
-      const jitterX = jitterFactor ? Math.random() * jitterFactor - jitterFactor/2 : 0;
-      const jitterY = jitterFactor ? Math.random() * jitterFactor - jitterFactor/2 : 0;
-      
-      return {
-        ...node,
-        position: {
-          x: nodeWithPosition.x - width / 2 + jitterX,
-          y: nodeWithPosition.y - height / 2 + jitterY,
-        },
-        dimensions: { width, height }
-      };
+    // Procesar los nodos con el nuevo layout y verificar superposiciones
+    const layoutedNodes = safeNodes.map((node) => {
+      try {
+        const nodeWithPosition = dagreGraph.node(node.id);
+        
+        // Verificar si dagre devolvió posición para este nodo
+        if (!nodeWithPosition || typeof nodeWithPosition.x !== 'number' || typeof nodeWithPosition.y !== 'number') {
+          return node;
+        }
+        
+        const { width, height } = estimateNodeSize(node);
+        
+        return {
+          ...node,
+          // Importante: permitir que el nodo sea arrastrable
+          draggable: true,
+          position: {
+            x: nodeWithPosition.x - width / 2,
+            y: nodeWithPosition.y - height / 2,
+          },
+          dimensions: { width, height }
+        };
+      } catch (error) {
+        console.warn(`Error posicionando nodo ${node.id}:`, error);
+        // También aquí permitimos que sea arrastrable
+        return { ...node, draggable: true };
+      }
     });
 
-    return { nodes: layoutedNodes, edges };
+    return { nodes: layoutedNodes, edges: safeEdges };
   }, [nodeSizeMode, estimateNodeSize]);
 
   // Referencia estable para las aristas
@@ -856,15 +965,22 @@ const DiagramView = ({ jsonData, darkMode = true }) => {
 
   // Función para manejar la selección de nodos y resaltar conexiones
   const onNodeClick = useCallback((event, node) => {
+    if (!node || !node.id) return;
+    
     const nodeId = node.id;
     
     // Actualizar el estado de selección
     setSelectedNodeId(prevSelectedNodeId => 
       prevSelectedNodeId === nodeId ? null : nodeId);
     
+    // Referencia segura a las aristas actuales
+    const currentEdges = edgesRef.current;
+    
     // Resaltar/quitar resaltado de las aristas conectadas
     setEdges(prevEdges => {
       return prevEdges.map(edge => {
+        if (!edge || !edge.id) return edge;
+        
         const isConnected = edge.source === nodeId || edge.target === nodeId;
         
         // Si el nodo ya estaba seleccionado, quitamos todos los resaltados
@@ -897,12 +1013,16 @@ const DiagramView = ({ jsonData, darkMode = true }) => {
       });
     });
     
-    // También podemos resaltar nodos conectados si es necesario
+    // También podemos resaltar nodos conectados con manejo seguro
     setNodes(prevNodes => {
       return prevNodes.map(n => {
-        const isConnectedNode = edges.some(edge => 
-          (edge.source === nodeId && edge.target === n.id) || 
-          (edge.target === nodeId && edge.source === n.id)
+        if (!n || !n.id) return n;
+        
+        const isConnectedNode = currentEdges.some(edge => 
+          edge && edge.id && (
+            (edge.source === nodeId && edge.target === n.id) || 
+            (edge.target === nodeId && edge.source === n.id)
+          )
         );
         
         // Si el nodo ya estaba seleccionado, quitamos todos los resaltados
@@ -943,7 +1063,7 @@ const DiagramView = ({ jsonData, darkMode = true }) => {
         };
       });
     });
-  }, [setEdges, setNodes, edges, selectedNodeId]);
+  }, [setEdges, setNodes, selectedNodeId]);
 
   // Función para limpiar el resaltado cuando se hace clic en el fondo
   const onPaneClick = useCallback(() => {
@@ -973,14 +1093,250 @@ const DiagramView = ({ jsonData, darkMode = true }) => {
     }
   }, [selectedNodeId, setEdges, setNodes]);
 
-  // Debounce para el evento de arrastre
-  const onNodesDragStop = useCallback(
-    debounce((event, node) => {
-      // Aquí puedes manejar lo que sucede al detener el arrastre
-      console.log('Node drag stopped:', node);
-    }, 1), // Ajusta el tiempo de debounce según sea necesario
-    []
-  );
+  // Optimizar la función recalculateLayout para mejorar el rendimiento de fitView
+  const recalculateLayout = useCallback(() => {
+    if (reactFlowInstance) {
+      try {
+        // Indicar visualmente que estamos recalculando
+        document.body.classList.add('viewport-transforming');
+        
+        // Reducción de la precisión visual durante transformaciones
+          setEdges(prevEdges => 
+            prevEdges.filter(edge => edge && edge.id)
+              .map(edge => ({
+                ...edge, 
+              className: `${edge.className || ''} updating`.trim(),
+              // Simplificar visual durante transformación
+              style: {
+                ...edge.style,
+                strokeWidth: 1,
+                transition: 'none'
+              }
+              }))
+          );
+          
+        // Recalcular layout con optimizaciones
+            const { nodes: newNodes, edges: newEdges } = getLayoutedElements(
+              nodesRef.current,
+              edgesRef.current,
+              layoutDirection
+            );
+            
+        // Actualizar nodos de manera eficiente
+            setNodes(newNodes);
+            
+        // Usar un valor corto para la duración de fitView para mejorar rendimiento
+            setTimeout(() => {
+          if (reactFlowInstance) {
+              try {
+              // Configuración optimizada para fitView
+                reactFlowInstance.fitView({
+                padding: 0.1, // Reducción del padding para mejor rendimiento
+                  includeHiddenNodes: false,
+                duration: 200, // Reducir duración para mayor velocidad
+                maxZoom: 1.5  // Limitar el zoom máximo para evitar procesamiento excesivo
+                });
+              
+              // Quitar clase de transformación después de que termine
+              setTimeout(() => {
+                document.body.classList.remove('viewport-transforming');
+                
+                // Restaurar estilos visuales normales
+                setEdges(prevEdges => 
+                  prevEdges.filter(edge => edge && edge.id)
+                    .map(edge => ({
+                      ...edge, 
+                      className: (edge.className || '').replace('updating', '').trim(),
+                  style: {
+                    ...edge.style,
+                        strokeWidth: edge.style?.strokeWidth || 1.5,
+                        transition: null
+                      }
+                    }))
+                );
+              }, 250);
+            } catch (error) {
+              console.warn("Error al ajustar la vista:", error);
+              document.body.classList.remove('viewport-transforming');
+            }
+          }
+        }, 10); // Reducir el tiempo de espera para comenzar fitView
+        
+      } catch (error) {
+        console.warn("Error en el recálculo del layout:", error);
+        document.body.classList.remove('viewport-transforming');
+      }
+    }
+  }, [getLayoutedElements, reactFlowInstance, layoutDirection, setNodes, setEdges]);
+
+  // Reemplazar el panel de auto-layout con esta función
+  const autoLayoutRef = useRef(recalculateLayout);
+  useEffect(() => {
+    autoLayoutRef.current = recalculateLayout;
+  }, [recalculateLayout]);
+
+  // Función optimizada para controlar el fitView directamente
+  const handleFitView = useCallback(() => {
+    if (reactFlowInstance) {
+      document.body.classList.add('viewport-transforming');
+      
+      // Simplificar la representación visual durante la transformación
+      setNodes(prevNodes => 
+        prevNodes.map(node => ({
+          ...node,
+          style: {
+            ...node.style,
+            transition: 'none',
+          }
+        }))
+      );
+      
+      // Usar requestAnimationFrame para sincronizar con el ciclo de renderizado del navegador
+      requestAnimationFrame(() => {
+        try {
+          reactFlowInstance.fitView({
+            padding: 0.1,
+            includeHiddenNodes: false,
+            duration: 200,
+            maxZoom: 1.5
+          });
+          
+          // Restaurar después de que termine la transformación
+          setTimeout(() => {
+            document.body.classList.remove('viewport-transforming');
+            setNodes(prevNodes => 
+              prevNodes.map(node => ({
+                ...node,
+                style: {
+                  ...node.style,
+                  transition: null
+                }
+              }))
+            );
+          }, 250);
+        } catch (error) {
+          console.warn("Error en fitView:", error);
+          document.body.classList.remove('viewport-transforming');
+        }
+      });
+    }
+  }, [reactFlowInstance, setNodes]);
+
+  // Optimización crítica de los handlers de arrastre
+  const onNodeDragStart = useCallback((event, node) => {
+    // Desactivar todas las transiciones y animaciones durante el arrastre
+    document.body.classList.add('dragging-active');
+    
+    // Marcar este nodo como el que se está arrastrando para optimizaciones
+    setNodes(prevNodes => 
+      prevNodes.map(n => ({
+        ...n,
+        isDragging: n.id === node.id,
+        // Desactivar las transiciones para todos los nodos durante el arrastre
+        style: {
+          ...n.style,
+          transition: 'none'
+        }
+      }))
+    );
+  }, [setNodes]);
+
+  // Esta función usa throttling implícito al ser muy específica
+  const onNodeDrag = useCallback((event, node) => {
+    // Usar requestAnimationFrame para limitar actualizaciones y mejorar rendimiento
+    if (!window.dragAnimationFrame) {
+      window.dragAnimationFrame = requestAnimationFrame(() => {
+        // Solo actualizar las aristas directamente conectadas
+        const connectedEdges = edgesRef.current.filter(edge => 
+          edge.source === node.id || edge.target === node.id
+        );
+        
+        if (connectedEdges.length > 0) {
+          setEdges(prevEdges => {
+            // Solo actualizamos los bordes conectados al nodo arrastrado
+            return prevEdges.map(edge => {
+              if (connectedEdges.some(e => e.id === edge.id)) {
+                return {
+                  ...edge,
+                  // Aplicar estilo simplificado durante el arrastre
+                  className: 'dragging-edge',
+                  // Evitar animaciones durante el arrastre
+                  animated: false,
+                  style: {
+                    ...edge.style,
+                    transition: 'none',
+                    strokeDasharray: '5,5' // Estilo visual ligero durante arrastre
+                  }
+                };
+              }
+              return edge;
+            });
+          });
+        }
+        
+        window.dragAnimationFrame = null;
+      });
+    }
+  }, [setEdges]);
+
+  const onNodeDragStop = useCallback((event, node) => {
+    // Cancelar cualquier frame pendiente
+    if (window.dragAnimationFrame) {
+      cancelAnimationFrame(window.dragAnimationFrame);
+      window.dragAnimationFrame = null;
+    }
+    
+    // Restaurar todas las transiciones
+    document.body.classList.remove('dragging-active');
+    
+    // Restaurar nodos
+    setNodes(prevNodes => 
+      prevNodes.map(n => ({
+        ...n,
+        isDragging: false,
+        // Restaurar transiciones con un ligero retraso para evitar saltos
+        style: {
+          ...n.style,
+          transition: null // Null para que use el valor por defecto de CSS
+        }
+      }))
+    );
+    
+    // Restaurar los estilos de los bordes
+    setEdges(prevEdges => 
+      prevEdges.map(edge => ({
+        ...edge,
+        className: edge.className?.replace('dragging-edge', '') || '',
+        style: {
+          ...edge.style,
+          transition: null,
+          strokeDasharray: null
+        }
+      }))
+    );
+    
+    // Evitamos recalcular el layout automáticamente después del arrastre
+    // para que el usuario pueda posicionar manualmente
+  }, [setNodes, setEdges]);
+
+  // Agregar un handler para cambios en los nodos para manejar correctamente el arrastre
+  const onNodesChange = useCallback((changes) => {
+    // Este es un reemplazo eficiente para setNodes(applyNodeChanges(changes, nodes))
+    // que evita recreaciones innecesarias del estado
+    setNodes(nodes => {
+      // Filtramos los cambios para ignorar ciertos tipos durante el arrastre
+      const filteredChanges = changes.filter(change => {
+        // Si estamos arrastrando, solo procesamos cambios de posición
+        if (document.body.classList.contains('dragging-active')) {
+          return change.type === 'position';
+        }
+        return true;
+      });
+      
+      if (filteredChanges.length === 0) return nodes;
+      return applyNodeChanges(filteredChanges, nodes);
+    });
+  }, [setNodes]);
 
   return (
     <div className={`h-full w-full ${darkMode ? 'bg-black' : 'bg-gray-100'} relative`} ref={reactFlowWrapper}>
@@ -1041,30 +1397,67 @@ const DiagramView = ({ jsonData, darkMode = true }) => {
         Profundidad máxima: {maxDepth} | Mostrando hasta nivel: {levelThreshold}
       </div>
       
-      {/* ReactFlow con las opciones corregidas */}
+      {/* ReactFlow con configuración optimizada */}
       <ReactFlow
         nodes={nodes}
         edges={edges}
+        nodeTypes={NODE_TYPES}
+        edgeTypes={EDGE_TYPES}
         onNodesChange={onNodesChange}
-        onEdgesChange={onEdgesChange}
-        nodeTypes={nodeTypes}
+        onEdgesChange={null}
         onInit={setReactFlowInstance}
         fitView
-        fitViewOptions={{ padding: 0.3, includeHiddenNodes: false }}
+        fitViewOptions={{ 
+          padding: 0.1, 
+          includeHiddenNodes: false,
+          duration: 200, 
+          maxZoom: 1.5 
+        }}
         minZoom={0.1}
-        maxZoom={4}
-        proOptions={{ hideAttribution: true }}
+        maxZoom={2} // Limitar el zoom máximo para mejor rendimiento
+        proOptions={{ 
+          hideAttribution: true,
+          account: 'paid-pro' // Activar optimizaciones pro incluso si no tiene cuenta
+        }}
         defaultEdgeOptions={{
           type: 'smoothstep',
           style: { strokeWidth: 1.5 },
+          animated: false,
         }}
         className="animate-layout-transition"
         onNodeClick={onNodeClick}
         onPaneClick={onPaneClick}
-        onNodesDragStop={onNodesDragStop}
+        onError={(error) => console.warn("ReactFlow error:", error)}
+        nodesDraggable={true}
+        edgesFocusable={true}
+        onNodeDragStart={onNodeDragStart}
+        onNodeDrag={onNodeDrag}
+        onNodeDragStop={onNodeDragStop}
+        elementsSelectable={true}
+        selectNodesOnDrag={false}
+        zoomOnScroll={true}
+        zoomOnPinch={true}
+        panOnScroll={false} // Desactivar pan al desplazar para evitar operaciones costosas
+        snapToGrid={false} // Desactivar snap para mejorar rendimiento
+        snapGrid={[15, 15]}
+        connectionLineStyle={{ stroke: '#ddd' }} // Simplificar línea de conexión
+        elevateEdgesOnSelect={false} // Evitar elevación costosa
       >
-        <Background color={darkMode ? "#333" : "#e5e7eb"} gap={16} />
-        <Controls />
+        <Background 
+          color={darkMode ? "#333" : "#e5e7eb"} 
+          gap={16} 
+          size={1} // Reducir tamaño para mejor rendimiento 
+        />
+        <Controls 
+          showZoom={true}
+          showFitView={true}
+          showInteractive={false} // Desactivar elementos interactivos costosos
+          fitViewOptions={{ 
+            padding: 0.1, 
+            duration: 200 
+          }}
+          onFitView={handleFitView} // Usar nuestra implementación optimizada
+        />
         <MiniMap 
           nodeColor={(node) => {
             switch (node.type) {
@@ -1073,49 +1466,46 @@ const DiagramView = ({ jsonData, darkMode = true }) => {
             }
           }}
           maskColor={darkMode ? "rgba(0, 0, 0, 0.5)" : "rgba(255, 255, 255, 0.5)"}
-          style={{ background: darkMode ? '#1a202c' : '#f3f4f6' }}
+          style={{ 
+            background: darkMode ? '#1a202c' : '#f3f4f6',
+            height: 80, // Reducir tamaño para mejor rendimiento
+            width: 120
+          }}
         />
         
-        {/* Panel para función automática de recálculo del layout cuando hay cambios */}
+        {/* Panel modificado con mejor manejo de errores */}
         <Panel position="bottom-center" className="bg-transparent">
           <button
             className="hidden"
-            onClick={() => {
-              if (reactFlowInstance) {
-                // Usar requestAnimationFrame para mejores tiempos
-                requestAnimationFrame(() => {
-                  // Marcar todas las aristas como actualizándose antes del layout
-                  setEdges(prevEdges => 
-                    prevEdges.map(edge => ({
-                      ...edge, 
-                      className: `${edge.className || ''} updating`.trim() 
-                    }))
-                  );
-                  
-                  // Usar timeout mínimo para dar tiempo a que se completen otras transiciones
-                  setTimeout(() => {
-                    // Recalcular el layout con opciones optimizadas
-                    reactFlowInstance.fitView({
-                      padding: 0.3,
-                      includeHiddenNodes: false,
-                      duration: 300 // Tiempo reducido para la animación
-                    });
-                    
-                    // Quitar la clase de actualización después de completar el layout
-                    setTimeout(() => {
-                      setEdges(prevEdges => 
-                        prevEdges.map(edge => ({
-                          ...edge, 
-                          className: (edge.className || '').replace('updating', '').trim() 
-                        }))
-                      );
-                    }, 350);
-                  }, 30);
-                });
-              }
-            }}
+            onClick={() => autoLayoutRef.current()}
             id="auto-layout-btn"
           />
+        </Panel>
+        
+        {/* Reemplazar el botón de reorganización para usar nuestra implementación optimizada */}
+        <Panel position="top-right" className="tools-panel ml-2">
+          <button 
+            onClick={() => {
+              setEdges(prevEdges => 
+                prevEdges.map(edge => ({
+                  ...edge,
+                  animated: false, // Desactivar animaciones durante el recálculo
+                  style: {
+                    ...edge.style,
+                    transition: 'none'
+                  }
+                }))
+              );
+              autoLayoutRef.current();
+            }}
+            className="px-2 py-1 text-xs rounded bg-blue-600 hover:bg-blue-700 flex items-center"
+            title="Reorganizar nodos"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"></path>
+            </svg>
+            Reorganizar
+          </button>
         </Panel>
       </ReactFlow>
     </div>

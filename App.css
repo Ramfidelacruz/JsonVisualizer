@@ -1,0 +1,184 @@
+/* Quitar estilos de arrastre y transiciones que no se usarán */
+.react-flow__node {
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+  transform: translateZ(0);
+  -webkit-font-smoothing: subpixel-antialiased;
+  /* Transiciones suaves para cambios automáticos de posición */
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              visibility 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Destacar nodos seleccionados ya que no se pueden arrastrar */
+.react-flow__node.selected {
+  box-shadow: 0 0 0 2px rgba(66, 153, 225, 0.8) !important;
+}
+
+/* Mejorar visibilidad del grafo completo */
+.react-flow__pane {
+  cursor: default !important; /* Cambiar cursor para indicar que no se puede arrastrar */
+}
+
+/* Estilos mejorados para las aristas */
+.react-flow__edge {
+  transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              visibility 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Indicador visual cuando se está recalculando el layout */
+.react-flow__edge.updating .react-flow__edge-path {
+  stroke-dasharray: 5 !important;
+  animation: dash 1s infinite linear;
+}
+
+@keyframes dash {
+  to {
+    stroke-dashoffset: -10;
+  }
+}
+
+/* Estilo para la transición del viewport al hacer fitView */
+.react-flow__viewport {
+  transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Optimizaciones para el rendimiento durante el arrastre */
+.dragging-active .react-flow__node {
+  transition: none !important;
+  will-change: transform;
+}
+
+.dragging-active .react-flow__edge {
+  transition: none !important;
+}
+
+/* Reducir las animaciones durante el arrastre */
+.dragging-active .react-flow__edge-path {
+  animation: none !important;
+}
+
+/* Mejorar rendimiento de bordes durante arrastre */
+.react-flow__edge[data-dragging="true"] .react-flow__edge-path {
+  stroke-dasharray: 5;
+  animation: none !important;
+  transition: none !important;
+}
+
+/* Optimizar el rendimiento de transición del viewport */
+.react-flow__viewport {
+  transition: transform 0.3s ease-out;
+  will-change: transform;
+}
+
+/* Reducir el trabajo de renderizado para nodos inactivos */
+.react-flow__node:not(:hover):not(.selected) {
+  transition: transform 0.2s ease-out, opacity 0.2s ease-out;
+}
+
+/* Optimizaciones críticas para el arrastre fluido */
+.dragging-active * {
+  /* Eliminar completamente todas las transiciones durante el arrastre */
+  transition: none !important;
+  animation: none !important;
+}
+
+/* Eliminar transiciones para todos los elementos durante el arrastre */
+.dragging-active .react-flow__node {
+  transition: none !important;
+  will-change: transform;
+  animation: none !important;
+}
+
+.dragging-active .react-flow__edge {
+  transition: none !important;
+  animation: none !important;
+}
+
+.dragging-active .react-flow__edge-path {
+  transition: none !important;
+  animation: none !important;
+  stroke-dasharray: 5,5;
+}
+
+/* Optimizar el renderizado durante el arrastre haciendo que los nodos no arrastrados sean más ligeros */
+.dragging-active .react-flow__node:not([data-dragging="true"]) {
+  opacity: 0.7;
+}
+
+/* Estilo específico para el nodo que se está arrastrando */
+.react-flow__node[data-dragging="true"] {
+  z-index: 10;
+  filter: drop-shadow(0 0 8px rgba(0, 0, 0, 0.3));
+}
+
+/* Arista siendo arrastrada debe tener un estilo simplificado */
+.dragging-edge .react-flow__edge-path {
+  stroke-dasharray: 5,5 !important;
+  animation: none !important;
+  transition: none !important;
+}
+
+/* Eliminar las animaciones sutiles que pueden causar problemas de rendimiento */
+.dragging-active .react-flow__node.node-highlight .node-container {
+  animation: none !important;
+  transform: none !important;
+}
+
+/* Optimizaciones para el viewport durante transformaciones */
+.viewport-transforming .react-flow__viewport {
+  transition: transform 0.2s ease-out !important; /* Duración más corta y función de tiempo optimizada */
+}
+
+/* Reducir complejidad visual durante transformaciones */
+.viewport-transforming .react-flow__edge {
+  animation: none !important;
+  transition: none !important;
+}
+
+.viewport-transforming .react-flow__edge-path {
+  stroke-width: 1px !important;
+  animation: none !important;
+  transition: none !important;
+}
+
+.viewport-transforming .react-flow__node {
+  transition: none !important;
+  animation: none !important;
+}
+
+/* Simplificar la apariencia durante transformaciones para mejor rendimiento */
+.viewport-transforming .node-container {
+  filter: none !important;
+  box-shadow: none !important;
+}
+
+/* Desactivar resaltados durante transformaciones */
+.viewport-transforming .react-flow__edge.edge-highlight .react-flow__edge-path {
+  filter: none !important;
+  animation: none !important;
+}
+
+.viewport-transforming .react-flow__node.node-highlight .node-container {
+  animation: none !important;
+  filter: none !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+/* Reducir complejidad del fondo durante transformaciones */
+.viewport-transforming .react-flow__background {
+  opacity: 0.5;
+}
+
+/* Optimizar rendimiento del minimap durante transformaciones */
+.viewport-transforming .react-flow__minimap {
+  opacity: 0.7;
+  transition: none !important;
+}
+
+/* Reemplazar la transición del viewport por una más eficiente */
+.react-flow__viewport {
+  transition: transform 0.25s cubic-bezier(0.2, 0, 0.2, 1);
+  will-change: transform;
+} 
