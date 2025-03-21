@@ -329,6 +329,7 @@ const DiagramView = ({ jsonData, darkMode = true }) => {
         const shouldBeCollapsed = nodeLevel > level;
         
         return {
+          
           ...node,
           data: {
             ...node.data,
