@@ -1,0 +1,315 @@
+.react-resizable-handle {
+  display: block;
+  background-color: #2d3748;
+  box-sizing: border-box;
+  transition: background-color 0.2s;
+}
+
+.react-resizable-handle:hover {
+  background-color: #4299e1;
+}
+
+.panel-resize-handle {
+  width: 4px;
+  cursor: col-resize;
+}
+
+.editor-container {
+  height: 100%;
+  overflow: hidden;
+}
+
+.diagram-container {
+  height: 100%;
+  background-color: #1a202c;
+}
+
+/* Estilos para los nodos en el diagrama */
+.flow-node {
+  padding: 10px;
+  border-radius: 6px;
+  background-color: #2d3748;
+  color: white;
+  border: 1px solid #4a5568;
+  font-family: 'Courier New', monospace;
+  transition: box-shadow 0.3s, transform 0.2s;
+}
+
+.flow-node:hover {
+  box-shadow: 0 0 0 2px rgba(66, 153, 225, 0.5);
+  transform: translateY(-2px);
+}
+
+.flow-node-key {
+  color: #63b3ed;
+}
+
+.flow-node-value {
+  color: #68d391;
+}
+
+/* Personalización de las líneas de conexión */
+.react-flow__edge-path {
+  stroke-width: 1.5;
+  transition: stroke 0.3s, stroke-width 0.3s;
+}
+
+.react-flow__edge.animated .react-flow__edge-path {
+  stroke-dasharray: 5, 5;
+  animation: dashdraw 0.5s linear infinite;
+}
+
+@keyframes dashdraw {
+  to {
+    stroke-dashoffset: -10;
+  }
+}
+
+/* Estilos para los controles */
+.react-flow__controls {
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+}
+
+.react-flow__controls-button {
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+/* Estilos para tooltips */
+.tooltip {
+  position: absolute;
+  background-color: #1a202c;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+  pointer-events: none;
+}
+
+/* Personalización del minimapa */
+.react-flow__minimap {
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+/* Transiciones suaves para cambios de tema */
+.react-flow__node,
+.react-flow__edge,
+.react-flow__background,
+.react-flow__controls,
+.react-flow__minimap {
+  transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+}
+
+/* Estilos responsivos */
+@media (max-width: 768px) {
+  .react-flow__controls {
+    transform: scale(0.85);
+    transform-origin: bottom right;
+  }
+  
+  .react-flow__minimap {
+    transform: scale(0.8);
+    transform-origin: bottom right;
+  }
+}
+
+/* Desactivar texto seleccionable en los handles */
+.react-flow__handle {
+  user-select: none;
+}
+
+/* Contenedor de nodos con sombras y tamaño mejorados */
+.node-container {
+  display: inline-block !important;
+  width: auto !important;
+  min-width: 220px !important;
+  height: auto !important;
+  position: relative;
+  box-sizing: border-box;
+  box-shadow: 0 0 15px rgba(66, 153, 225, 0.5), 0 0 0 1px rgba(66, 153, 225, 0.2) !important;
+  transition: all 0.3s ease-in-out;
+}
+
+/* Efecto de resplandor para el tema oscuro */
+.react-flow__node.selected .node-container {
+  box-shadow: 0 0 20px rgba(255, 186, 8, 0.6), 0 0 0 2px rgba(255, 186, 8, 0.6) !important;
+  border-color: #ffb908 !important;
+}
+
+/* Handles personalizados con mejor posicionamiento */
+.handle-custom {
+  width: 10px !important;
+  height: 10px !important;
+  background-color: #4299e1 !important;
+  border: 2px solid #2d3748 !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  z-index: 10;
+  border-radius: 50%;
+  box-shadow: 0 0 5px rgba(66, 153, 225, 0.8) !important;
+}
+
+/* Mejorar el aspecto de los handles al interactuar */
+.handle-custom:hover {
+  box-shadow: 0 0 8px rgba(66, 153, 225, 1) !important;
+  transform: translateY(-50%) scale(1.2) !important;
+}
+
+/* Asegurar que los handles estén bien posicionados */
+.react-flow__handle-left {
+  left: -6px !important;
+}
+
+.react-flow__handle-right {
+  right: -6px !important;
+}
+
+/* Estilos para los nodos en ReactFlow */
+.react-flow__node {
+  width: auto !important;
+  height: auto !important;
+  display: inline-block !important;
+  white-space: nowrap;
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.5));
+}
+
+/* Conexiones con efecto resplandor */
+.react-flow__edge-path {
+  stroke: #4299e1;
+  stroke-width: 2px;
+  filter: drop-shadow(0 0 2px rgba(66, 153, 225, 0.5));
+}
+
+/* Conexión seleccionada con resplandor */
+.react-flow__edge.selected .react-flow__edge-path,
+.react-flow__edge.animated .react-flow__edge-path {
+  stroke: #f59e0b;
+  stroke-width: 3px;
+  filter: drop-shadow(0 0 4px rgba(245, 158, 11, 0.7));
+}
+
+/* Evitar que ReactFlow añada padding adicional a los nodos */
+.react-flow__node-default {
+  padding: 0 !important;
+  background: transparent !important;
+  border: none !important;
+}
+
+/* Mejorar la apariencia general del fondo */
+.react-flow__background {
+  background-color: #111827 !important;
+}
+
+/* Efecto de resplandor para nodos en hover */
+.node-container:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 25px rgba(66, 153, 225, 0.7), 0 0 0 1px rgba(66, 153, 225, 0.3) !important;
+}
+
+/* Agregar estos estilos para los nodos colapsables */
+
+/* Estilos para botones de colapso */
+.collapse-btn {
+  cursor: pointer;
+  transition: background-color 0.2s;
+  min-width: 20px;
+  min-height: 20px;
+}
+
+.collapse-btn:hover {
+  background-color: #4a5568 !important;
+}
+
+/* Estilos para nodos colapsados */
+.collapsed-node {
+  opacity: 0.9;
+}
+
+/* Transición para colapso/expansión */
+.node-container {
+  transition: all 0.3s ease;
+}
+
+/* Mejorar legibilidad de los nodos */
+.node-container {
+  display: inline-block !important;
+  width: auto !important;
+  min-width: 220px !important;
+  height: auto !important;
+  position: relative;
+  box-sizing: border-box;
+  box-shadow: 0 0 15px rgba(66, 153, 225, 0.5), 0 0 0 1px rgba(66, 153, 225, 0.2) !important;
+  transition: all 0.3s ease-in-out;
+}
+
+/* Mejoras para la visualización de bordes cuando hay muchos */
+.react-flow__edge-path {
+  stroke: #4299e1;
+  stroke-width: 1.5px; /* Ligeramente más delgada para evitar desorden */
+  filter: drop-shadow(0 0 1px rgba(66, 153, 225, 0.3));
+}
+
+/* Mejorar la visibilidad de los handles */
+.handle-custom {
+  width: 8px !important; /* Ligeramente más pequeño para evitar desorden */
+  height: 8px !important;
+  background-color: #4299e1 !important;
+  border: 2px solid #2d3748 !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  z-index: 10;
+  border-radius: 50%;
+  box-shadow: 0 0 3px rgba(66, 153, 225, 0.6) !important;
+}
+
+/* Facilitar la interacción con el grafo */
+.react-flow__pane {
+  cursor: grab;
+}
+
+.react-flow__pane:active {
+  cursor: grabbing;
+}
+
+/* Indicadores visuales para la búsqueda */
+.react-flow__node[data-highlighted="true"] .node-container {
+  border: 2px solid #22c55e !important;
+  box-shadow: 0 0 15px rgba(34, 197, 94, 0.6) !important;
+}
+
+/* Mejorar controles visuales */
+.react-flow__controls-button {
+  background-color: #2d3748 !important;
+  color: white !important;
+  border: none !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3) !important;
+}
+
+.react-flow__controls-button:hover {
+  background-color: #4a5568 !important;
+}
+
+/* Estilos para el panel de herramientas */
+.tools-panel {
+  padding: 8px;
+  background-color: rgba(15, 23, 42, 0.8);
+  border-radius: 6px;
+  backdrop-filter: blur(4px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Mejorar el contraste de texto en nodos */
+.node-container .text-blue-400 {
+  color: #63b3ed !important; /* Azul más claro */
+}
+
+.node-container .text-green-400 {
+  color: #68d391 !important; /* Verde más claro */
+}
+
+.node-container .text-yellow-400 {
+  color: #fcd34d !important; /* Amarillo más claro */
+}
