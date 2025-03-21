@@ -1125,7 +1125,7 @@ const DiagramView = ({ jsonData, darkMode = true }) => {
         // Actualizar nodos de manera eficiente
             setNodes(newNodes);
             
-        // Usar un valor corto para la duración de fitView para mejorar rendimiento
+        // Usar un valor corto para la duración de fitView para mejor rendimiento
             setTimeout(() => {
           if (reactFlowInstance) {
               try {
@@ -1340,56 +1340,108 @@ const DiagramView = ({ jsonData, darkMode = true }) => {
 
   return (
     <div className={`h-full w-full ${darkMode ? 'bg-black' : 'bg-gray-100'} relative`} ref={reactFlowWrapper}>
-      {/* Controles de UI */}
-      <div className="absolute top-2 left-2 z-10 flex gap-2">
+      {/* Barra de búsqueda */}
+      <div className="absolute top-2 left-2 z-10">
         <SearchBar onSearch={setSearchTerm} />
       </div>
       
-      <div className="absolute top-2 right-2 z-10 flex flex-wrap gap-2 tools-panel">
-        <button 
-          onClick={() => setLayoutDirection('LR')}
-          className={`px-2 py-1 text-xs rounded ${layoutDirection === 'LR' ? 'bg-blue-600' : 'bg-gray-700'}`}>
-          Horizontal
-        </button>
-        <button 
-          onClick={() => setLayoutDirection('TB')}
-          className={`px-2 py-1 text-xs rounded ${layoutDirection === 'TB' ? 'bg-blue-600' : 'bg-gray-700'}`}>
-          Vertical
-        </button>
-        
-        {/* Control mejorado para el nivel de profundidad */}
-        <div className="flex items-center bg-gray-700 rounded px-2 py-1">
-          <span className="text-xs text-white mr-2">Nivel: {levelThreshold}</span>
-          <input 
-            type="range" 
-            min="1" 
-            max={Math.max(10, maxDepth)} 
-            value={levelThreshold}
-            onChange={(e) => changeCollapseLevel(parseInt(e.target.value))}
-            className="w-20 h-2"
-          />
+      {/* Panel principal de controles - reorganizado para evitar superposiciones */}
+      <div className="absolute top-2 right-2 z-20 tools-panel flex flex-wrap gap-2">
+        <div className="flex gap-2">
+          <button 
+            onClick={() => setLayoutDirection('LR')}
+            className={`control-button ${layoutDirection === 'LR' ? 'active' : ''}`}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+              <polyline points="12 5 19 12 12 19"></polyline>
+            </svg>
+            Horizontal
+          </button>
+          <button 
+            onClick={() => setLayoutDirection('TB')}
+            className={`control-button ${layoutDirection === 'TB' ? 'active' : ''}`}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <polyline points="19 12 12 19 5 12"></polyline>
+            </svg>
+            Vertical
+          </button>
         </div>
         
-        <select 
-          onChange={(e) => setNodeSizeMode(e.target.value)}
-          value={nodeSizeMode}
-          className="px-2 py-1 text-xs rounded bg-gray-700 text-white"
-        >
-          <option value="compact">Compacto</option>
-          <option value="medium">Mediano</option>
-          <option value="expanded">Expandido</option>
-        </select>
+        {/* Segunda fila de controles para evitar superposiciones */}
+        <div className="flex gap-2 w-full">
+          {/* Control para nivel de profundidad */}
+          <div className="range-control">
+            <span>Nivel: {levelThreshold}</span>
+            <input 
+              type="range" 
+              min="1" 
+              max={Math.max(10, maxDepth)} 
+              value={levelThreshold}
+              onChange={(e) => changeCollapseLevel(parseInt(e.target.value))}
+            />
+          </div>
+          
+          <select 
+            onChange={(e) => setNodeSizeMode(e.target.value)}
+            value={nodeSizeMode}
+            className="size-selector"
+          >
+            <option value="compact">Compacto</option>
+            <option value="medium">Mediano</option>
+            <option value="expanded">Expandido</option>
+          </select>
+        </div>
         
-        <button 
-          onClick={() => changeCollapseLevel(0)}
-          className="px-2 py-1 text-xs rounded bg-gray-700 hover:bg-gray-600">
-          Colapsar Todo
-        </button>
-        <button 
-          onClick={() => changeCollapseLevel(999)}
-          className="px-2 py-1 text-xs rounded bg-gray-700 hover:bg-gray-600">
-          Expandir Todo
-        </button>
+        {/* Tercera fila para botones de colapso/expansión */}
+        <div className="flex gap-2 w-full">
+          <button 
+            onClick={() => changeCollapseLevel(0)}
+            className="control-button collapse-button"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            Colapsar Todo
+          </button>
+          <button 
+            onClick={() => changeCollapseLevel(999)}
+            className="control-button expand-button"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            Expandir Todo
+          </button>
+        </div>
+        
+        {/* Cuarta fila para botón de reorganización */}
+        <div className="flex w-full">
+          <button 
+            onClick={() => {
+              setEdges(prevEdges => 
+                prevEdges.map(edge => ({
+                  ...edge,
+                  animated: false,
+                  style: {
+                    ...edge.style,
+                    transition: 'none'
+                  }
+                }))
+              );
+              autoLayoutRef.current();
+            }}
+            className="control-button reorganize-button w-full"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"></path>
+            </svg>
+            Reorganizar
+          </button>
+        </div>
       </div>
       
       {/* Indicador de nodos ocultos */}
@@ -1410,14 +1462,12 @@ const DiagramView = ({ jsonData, darkMode = true }) => {
         fitViewOptions={{ 
           padding: 0.1, 
           includeHiddenNodes: false,
-          duration: 200, 
-          maxZoom: 1.5 
+          duration: 200
         }}
         minZoom={0.1}
-        maxZoom={2} // Limitar el zoom máximo para mejor rendimiento
+        maxZoom={2}
         proOptions={{ 
-          hideAttribution: true,
-          account: 'paid-pro' // Activar optimizaciones pro incluso si no tiene cuenta
+          hideAttribution: true
         }}
         defaultEdgeOptions={{
           type: 'smoothstep',
@@ -1435,28 +1485,22 @@ const DiagramView = ({ jsonData, darkMode = true }) => {
         onNodeDragStop={onNodeDragStop}
         elementsSelectable={true}
         selectNodesOnDrag={false}
-        zoomOnScroll={true}
-        zoomOnPinch={true}
-        panOnScroll={false} // Desactivar pan al desplazar para evitar operaciones costosas
-        snapToGrid={false} // Desactivar snap para mejorar rendimiento
-        snapGrid={[15, 15]}
-        connectionLineStyle={{ stroke: '#ddd' }} // Simplificar línea de conexión
-        elevateEdgesOnSelect={false} // Evitar elevación costosa
       >
         <Background 
           color={darkMode ? "#333" : "#e5e7eb"} 
           gap={16} 
-          size={1} // Reducir tamaño para mejor rendimiento 
+          size={1}
         />
         <Controls 
           showZoom={true}
           showFitView={true}
-          showInteractive={false} // Desactivar elementos interactivos costosos
+          showInteractive={false}
           fitViewOptions={{ 
             padding: 0.1, 
             duration: 200 
           }}
-          onFitView={handleFitView} // Usar nuestra implementación optimizada
+          onFitView={handleFitView}
+          position="bottom-right"
         />
         <MiniMap 
           nodeColor={(node) => {
@@ -1468,44 +1512,19 @@ const DiagramView = ({ jsonData, darkMode = true }) => {
           maskColor={darkMode ? "rgba(0, 0, 0, 0.5)" : "rgba(255, 255, 255, 0.5)"}
           style={{ 
             background: darkMode ? '#1a202c' : '#f3f4f6',
-            height: 80, // Reducir tamaño para mejor rendimiento
+            height: 80,
             width: 120
           }}
+          position="bottom-right"
         />
         
-        {/* Panel modificado con mejor manejo de errores */}
+        {/* Panel oculto para auto-layout */}
         <Panel position="bottom-center" className="bg-transparent">
           <button
             className="hidden"
             onClick={() => autoLayoutRef.current()}
             id="auto-layout-btn"
           />
-        </Panel>
-        
-        {/* Reemplazar el botón de reorganización para usar nuestra implementación optimizada */}
-        <Panel position="top-right" className="tools-panel ml-2">
-          <button 
-            onClick={() => {
-              setEdges(prevEdges => 
-                prevEdges.map(edge => ({
-                  ...edge,
-                  animated: false, // Desactivar animaciones durante el recálculo
-                  style: {
-                    ...edge.style,
-                    transition: 'none'
-                  }
-                }))
-              );
-              autoLayoutRef.current();
-            }}
-            className="px-2 py-1 text-xs rounded bg-blue-600 hover:bg-blue-700 flex items-center"
-            title="Reorganizar nodos"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"></path>
-            </svg>
-            Reorganizar
-          </button>
         </Panel>
       </ReactFlow>
     </div>

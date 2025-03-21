@@ -1,3 +1,4 @@
+/* ================= ESTRUCTURA BÁSICA DEL LAYOUT ================= */
 .react-resizable-handle {
   display: block;
   background-color: #2d3748;
@@ -24,321 +25,191 @@
   background-color: #1a202c;
 }
 
-/* Estilos para los nodos en el diagrama */
-.flow-node {
-  padding: 10px;
-  border-radius: 6px;
-  background-color: #2d3748;
-  color: white;
-  border: 1px solid #4a5568;
-  font-family: 'Courier New', monospace;
-  transition: box-shadow 0.3s, transform 0.2s;
+/* ================= COMPONENTES DE LA INTERFAZ ================= */
+/* Panel de herramientas principal */
+.tools-panel {
+  background-color: rgba(15, 23, 42, 0.9);
+  border-radius: 8px;
+  backdrop-filter: blur(4px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  padding: 12px;
+  min-width: 280px;
+  max-width: 320px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
-.flow-node:hover {
-  box-shadow: 0 0 0 2px rgba(66, 153, 225, 0.5);
-  transform: translateY(-2px);
-}
-
-.flow-node-key {
-  color: #63b3ed;
-}
-
-.flow-node-value {
-  color: #68d391;
-}
-
-/* Personalización de las líneas de conexión */
-.react-flow__edge-path {
-  stroke-width: 1.5;
-  transition: stroke 0.3s, stroke-width 0.3s;
-}
-
-.react-flow__edge.animated .react-flow__edge-path {
-  stroke-dasharray: 5, 5;
-  animation: dashdraw 0.5s linear infinite;
-}
-
-@keyframes dashdraw {
-  to {
-    stroke-dashoffset: -10;
-  }
-}
-
-/* Estilos para los controles */
-.react-flow__controls {
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
-}
-
-.react-flow__controls-button {
-  border-radius: 4px;
-  transition: background-color 0.2s;
-}
-
-/* Estilos para tooltips */
-.tooltip {
-  position: absolute;
-  background-color: #1a202c;
-  color: white;
-  padding: 4px 8px;
-  border-radius: 4px;
+/* Botones de control estándar */
+.control-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 6px 12px;
   font-size: 0.75rem;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-  z-index: 1000;
-  pointer-events: none;
-}
-
-/* Personalización del minimapa */
-.react-flow__minimap {
-  border-radius: 4px;
-  overflow: hidden;
-}
-
-/* Transiciones suaves para cambios de tema */
-.react-flow__node,
-.react-flow__edge,
-.react-flow__background,
-.react-flow__controls,
-.react-flow__minimap {
-  transition: background-color 0.3s, color 0.3s, border-color 0.3s;
-}
-
-/* Estilos responsivos */
-@media (max-width: 768px) {
-  .react-flow__controls {
-    transform: scale(0.85);
-    transform-origin: bottom right;
-  }
-  
-  .react-flow__minimap {
-    transform: scale(0.8);
-    transform-origin: bottom right;
-  }
-}
-
-/* Desactivar texto seleccionable en los handles */
-.react-flow__handle {
-  user-select: none;
-}
-
-/* Contenedor de nodos con sombras y tamaño mejorados */
-.node-container {
-  display: inline-block !important;
-  width: auto !important;
-  min-width: 220px !important;
-  height: auto !important;
-  position: relative;
-  box-sizing: border-box;
-  box-shadow: 0 0 15px rgba(66, 153, 225, 0.5), 0 0 0 1px rgba(66, 153, 225, 0.2) !important;
-  transition: all 0.3s ease-in-out;
-}
-
-/* Efecto de resplandor para el tema oscuro */
-.react-flow__node.selected .node-container {
-  box-shadow: 0 0 20px rgba(255, 186, 8, 0.6), 0 0 0 2px rgba(255, 186, 8, 0.6) !important;
-  border-color: #ffb908 !important;
-}
-
-/* Handles personalizados con mejor posicionamiento */
-.handle-custom {
-  width: 10px !important;
-  height: 10px !important;
-  background-color: #4299e1 !important;
-  border: 2px solid #2d3748 !important;
-  top: 50% !important;
-  transform: translateY(-50%) !important;
-  z-index: 10;
-  border-radius: 50%;
-  box-shadow: 0 0 5px rgba(66, 153, 225, 0.8) !important;
-}
-
-/* Mejorar el aspecto de los handles al interactuar */
-.handle-custom:hover {
-  box-shadow: 0 0 8px rgba(66, 153, 225, 1) !important;
-  transform: translateY(-50%) scale(1.2) !important;
-}
-
-/* Asegurar que los handles estén bien posicionados */
-.react-flow__handle-left {
-  left: -6px !important;
-}
-
-.react-flow__handle-right {
-  right: -6px !important;
-}
-
-/* Estilos para los nodos en ReactFlow */
-.react-flow__node {
-  width: auto !important;
-  height: auto !important;
-  display: inline-block !important;
-  white-space: nowrap;
-  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.5));
-}
-
-/* Conexiones con efecto resplandor */
-.react-flow__edge-path {
-  stroke: #4299e1;
-  stroke-width: 2px;
-  filter: drop-shadow(0 0 2px rgba(66, 153, 225, 0.5));
-}
-
-/* Conexión seleccionada con resplandor */
-.react-flow__edge.selected .react-flow__edge-path,
-.react-flow__edge.animated .react-flow__edge-path {
-  stroke: #f59e0b;
-  stroke-width: 3px;
-  filter: drop-shadow(0 0 4px rgba(245, 158, 11, 0.7));
-}
-
-/* Evitar que ReactFlow añada padding adicional a los nodos */
-.react-flow__node-default {
-  padding: 0 !important;
-  background: transparent !important;
-  border: none !important;
-}
-
-/* Mejorar la apariencia general del fondo */
-.react-flow__background {
-  background-color: #111827 !important;
-}
-
-/* Efecto de resplandor para nodos en hover */
-.node-container:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 0 25px rgba(66, 153, 225, 0.7), 0 0 0 1px rgba(66, 153, 225, 0.3) !important;
-}
-
-/* Agregar estos estilos para los nodos colapsables */
-
-/* Estilos para botones de colapso */
-.collapse-btn {
+  font-weight: 500;
+  color: white;
+  background-color: #2d3748;
+  border: none;
+  border-radius: 6px;
   cursor: pointer;
   transition: all 0.2s ease;
-  min-width: 20px;
-  min-height: 20px;
-  z-index: 10;
+  flex: 1;
 }
 
-.collapse-btn:hover {
-  background-color: #4a5568 !important;
-  transform: scale(1.1);
+.control-button:hover {
+  background-color: #4a5568;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
 }
 
-.collapse-btn:active {
-  transform: scale(0.95);
+.control-button:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
-/* Estilos para nodos colapsados */
-.collapsed-node {
-  opacity: 0.95 !important;
-  position: relative;
-  overflow: visible !important;
-}
-
-.collapsed-node::after {
-  content: "";
-  position: absolute;
-  bottom: -8px;
-  right: 0;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
+/* Estilo para botón activo/seleccionado */
+.control-button.active {
   background-color: #4299e1;
-  box-shadow: 0 0 5px rgba(66, 153, 225, 0.8);
-  z-index: 5;
-  animation: pulse 1.5s infinite ease-in-out;
+  box-shadow: 0 0 0 2px rgba(66, 153, 225, 0.4);
 }
 
-@keyframes pulse {
-  0% {
-    transform: scale(0.8);
-    opacity: 0.7;
-  }
-  50% {
-    transform: scale(1.2);
-    opacity: 0.9;
-  }
-  100% {
-    transform: scale(0.8);
-    opacity: 0.7;
-  }
-}
-
-/* Transición para colapso/expansión */
-.node-container {
-  transition: all 0.3s ease;
-}
-
-/* Mejorar legibilidad de los nodos */
-.node-container {
-  display: inline-block !important;
-  width: auto !important;
-  min-width: 220px !important;
-  height: auto !important;
-  position: relative;
-  box-sizing: border-box;
-  box-shadow: 0 0 15px rgba(66, 153, 225, 0.5), 0 0 0 1px rgba(66, 153, 225, 0.2) !important;
-  transition: all 0.3s ease-in-out;
-}
-
-/* Mejoras para la visualización de bordes cuando hay muchos */
-.react-flow__edge-path {
-  stroke: #4299e1;
-  stroke-width: 2px;
-  filter: drop-shadow(0 0 2px rgba(66, 153, 225, 0.5));
-}
-
-/* Mejorar la visibilidad de los handles */
-.handle-custom {
-  width: 8px !important; /* Ligeramente más pequeño para evitar desorden */
-  height: 8px !important;
-  background-color: #4299e1 !important;
-  border: 2px solid #2d3748 !important;
-  top: 50% !important;
-  transform: translateY(-50%) !important;
-  z-index: 10;
-  border-radius: 50%;
-  box-shadow: 0 0 3px rgba(66, 153, 225, 0.6) !important;
-}
-
-/* Facilitar la interacción con el grafo */
-.react-flow__pane {
-  cursor: grab;
-}
-
-.react-flow__pane:active {
-  cursor: grabbing;
-}
-
-/* Indicadores visuales para la búsqueda */
-.react-flow__node[data-highlighted="true"] .node-container {
-  border: 2px solid #22c55e !important;
-  box-shadow: 0 0 15px rgba(34, 197, 94, 0.6) !important;
-}
-
-/* Mejorar controles visuales */
-.react-flow__controls-button {
-  background-color: #2d3748 !important;
-  color: white !important;
-  border: none !important;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3) !important;
-}
-
-.react-flow__controls-button:hover {
-  background-color: #4a5568 !important;
-}
-
-/* Estilos para el panel de herramientas */
-.tools-panel {
-  padding: 8px;
-  background-color: rgba(15, 23, 42, 0.8);
+/* Selector de tamaño */
+.size-selector {
+  background-color: #2d3748;
+  color: white;
+  border: none;
   border-radius: 6px;
+  padding: 6px 8px;
+  font-size: 0.75rem;
+  min-height: 32px;
+  flex: 1;
+  transition: all 0.2s ease;
+}
+
+.size-selector:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(66, 153, 225, 0.4);
+}
+
+/* Control de rango personalizado */
+.range-control {
+  display: flex;
+  align-items: center;
+  background-color: #2d3748;
+  border-radius: 6px;
+  padding: 6px 10px;
+  min-height: 32px;
+  flex: 2;
+}
+
+.range-control span {
+  color: white;
+  font-size: 0.75rem;
+  margin-right: 8px;
+  white-space: nowrap;
+}
+
+.range-control input[type="range"] {
+  flex: 1;
+  height: 4px;
+  -webkit-appearance: none;
+  background: #4a5568;
+  border-radius: 2px;
+  outline: none;
+}
+
+.range-control input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #4299e1;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.range-control input[type="range"]::-webkit-slider-thumb:hover {
+  background: #63b3ed;
+  transform: scale(1.2);
+}
+
+/* Botón especial de reorganización */
+.reorganize-button {
+  background-color: #4299e1;
+  font-weight: 600;
+}
+
+.reorganize-button:hover {
+  background-color: #3182ce;
+}
+
+/* Botones específicos para colapso/expansión */
+.collapse-button, .expand-button {
+  flex: 1;
+}
+
+/* Ajuste para el ícono en los botones */
+.control-button svg {
+  min-width: 16px;
+  min-height: 16px;
+}
+
+/* Barra de búsqueda */
+.search-bar {
+  background-color: rgba(30, 41, 59, 0.9);
+  border-radius: 6px;
+  padding: 6px 10px;
+  min-width: 200px;
+}
+
+/* Mejorar posicionamiento de controles de ReactFlow */
+.react-flow__controls {
+  margin: 10px;
+  padding: 4px;
+  border-radius: 6px;
+  background-color: rgba(15, 23, 42, 0.8);
   backdrop-filter: blur(4px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: opacity 0.3s;
 }
 
-/* Mejorar el contraste de texto en nodos */
+.react-flow__minimap {
+  margin: 10px;
+  margin-bottom: 60px;
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border: 1px solid #4a5568;
+  transition: opacity 0.3s;
+}
+
+/* ================= NODOS Y ELEMENTOS DEL GRAFO ================= */
+/* Estilos base para nodos */
+.react-flow__node {
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.5));
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+  transform: translateZ(0);
+  -webkit-font-smoothing: subpixel-antialiased;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+              visibility 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Contenedor de nodo con mejor contraste */
+.node-container {
+  padding: 12px 16px;
+  border-radius: 8px;
+  border: 1px solid #4a5568;
+  background-color: #1e293b;
+  transition: box-shadow 0.3s ease, transform 0.2s ease;
+}
+
+/* Mejoras visuales para etiquetas de texto en nodos */
 .node-container .text-blue-400 {
   color: #63b3ed !important; /* Azul más claro */
 }
@@ -351,165 +222,213 @@
   color: #fcd34d !important; /* Amarillo más claro */
 }
 
-/* Estilos para nodos ocultos */
-.react-flow__node[style*="visibility: hidden"] {
-  pointer-events: none !important;
-  position: absolute !important;
-  pointer-events: none !important;
-  touch-action: none !important;
-  opacity: 0 !important;
-  width: 0 !important;
-  height: 0 !important;
-  display: none !important;
-  transform: scale(0) !important;
+/* Destacar nodos seleccionados */
+.react-flow__node.selected .node-container {
+  box-shadow: 0 0 0 2px rgba(66, 153, 225, 0.8) !important;
+  border-color: #4299e1 !important;
 }
 
-/* Estilos para aristas ocultas */
-.react-flow__edge[style*="visibility: hidden"] {
-  pointer-events: none !important;
-  stroke-width: 0 !important;
-  opacity: 0 !important;
-  display: none !important;
+/* Nodos resaltados */
+.react-flow__node.node-highlight .node-container {
+  box-shadow: 0 0 20px rgba(245, 158, 11, 0.7), 0 0 0 2px rgba(245, 158, 11, 0.5) !important;
+  border-color: #f59e0b !important;
+  animation: subtle-bounce 2s ease-in-out infinite;
 }
 
-/* Transiciones suaves para ocultamiento */
-.react-flow__node,
+@keyframes subtle-bounce {
+  0%, 100% { transform: translateY(-3px); }
+  50% { transform: translateY(-5px); }
+}
+
+/* Handles de conexión mejorados */
+.handle-custom {
+  width: 8px !important;
+  height: 8px !important;
+  background-color: #4299e1 !important;
+  border: 2px solid #1e293b !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  z-index: 10;
+  border-radius: 50%;
+  box-shadow: 0 0 3px rgba(66, 153, 225, 0.6) !important;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.handle-custom:hover {
+  transform: translateY(-50%) scale(1.2) !important;
+  box-shadow: 0 0 6px rgba(66, 153, 225, 0.8) !important;
+}
+
+/* ================= ARISTAS Y CONEXIONES ================= */
+/* Estilos base para aristas */
 .react-flow__edge {
-  transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1), 
-              visibility 0.2s cubic-bezier(0.4, 0, 0.2, 1),
-              transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* Ajuste para el recálculo del layout */
-.react-flow__viewport {
-  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* Animación para la transición del layout */
-.animate-layout-transition .react-flow__viewport {
-  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.animate-layout-transition .react-flow__node {
-  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), 
-              opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1), 
+  transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1),
               visibility 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.animate-layout-transition .react-flow__edge {
-  transition: opacity 0.2s ease, 
-              visibility 0.2s ease,
-              stroke 0.2s ease;
-}
-
-/* Mejorar visibilidad de aristas durante transiciones */
-.react-flow__edge:not([style*="visibility: hidden"]) .react-flow__edge-path {
-  opacity: 1 !important;
-  visibility: visible !important;
-  stroke-width: 2px !important;
-}
-
-/* Asegurar que las aristas en transición permanezcan visibles */
-.react-flow__edge .react-flow__edge-path {
-  transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-              stroke-width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-              stroke-dasharray 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-              stroke 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-/* Prevenir problemas con aristas durante colapso/expansión */
-.react-flow__edge[class*="updating"] .react-flow__edge-path {
-  opacity: 1 !important;
-  visibility: visible !important;
-}
-
-/* Optimizaciones para rendimiento de animaciones */
 .react-flow__edge-path {
-  will-change: stroke, stroke-width, d;
-  pointer-events: stroke;
-  paint-order: stroke;
-  stroke-linecap: round;
+  stroke: #4299e1;
+  stroke-width: 2px;
+  filter: drop-shadow(0 0 2px rgba(66, 153, 225, 0.5));
+  transition: stroke 0.3s, stroke-width 0.3s, filter 0.3s;
 }
 
-.react-flow__node {
-  will-change: transform, opacity;
-  backface-visibility: hidden;
-  transform: translateZ(0);
-  -webkit-font-smoothing: subpixel-antialiased;
+/* Aristas animadas */
+.react-flow__edge.animated .react-flow__edge-path {
+  stroke-dasharray: 5, 5;
+  animation: dashdraw 0.75s linear infinite;
 }
 
-/* Estilos para aristas conectadas cuando un nodo está seleccionado */
+@keyframes dashdraw {
+  to { stroke-dashoffset: -10; }
+}
+
+/* Aristas resaltadas */
 .react-flow__edge.edge-highlight .react-flow__edge-path {
   stroke: #f59e0b !important;
   stroke-width: 3px !important;
   filter: drop-shadow(0 0 5px rgba(245, 158, 11, 0.8)) !important;
   animation: glow 1.5s infinite alternate;
-  opacity: 1 !important;
-  visibility: visible !important;
-}
-
-/* Asegurar que las aristas ocultas estén completamente ocultas */
-.react-flow__edge[style*="visibility: hidden"] .react-flow__edge-path {
-  stroke-width: 0 !important;
-  opacity: 0 !important;
-}
-
-/* Efecto especial para marcar las aristas entre nodos */
-.react-flow__edge:not(.edge-highlight):hover .react-flow__edge-path {
-  stroke-width: 3px !important;
-  filter: drop-shadow(0 0 4px rgba(66, 153, 225, 0.7)) !important;
-  transition: stroke-width 0.2s ease, filter 0.2s ease;
-}
-
-/* Estilo para las conexiones animadas modificado para mejor rendimiento */
-.react-flow__edge.animated .react-flow__edge-path {
-  stroke-dasharray: 5, 5;
-  animation: dashdraw 0.75s linear infinite;
-  opacity: 1 !important;
-  visibility: visible !important;
-}
-
-@keyframes dashdraw {
-  to {
-    stroke-dashoffset: -10;
-  }
-}
-
-/* Asegurar que las aristas permanezcan visibles al reposicionar nodos */
-.react-flow.dragging .react-flow__edge .react-flow__edge-path {
-  opacity: 1 !important;
-  visibility: visible !important;
-  transition: d 0.05s linear !important;
 }
 
 @keyframes glow {
-  from {
-    filter: drop-shadow(0 0 3px rgba(245, 158, 11, 0.6));
-  }
-  to {
-    filter: drop-shadow(0 0 5px rgba(245, 158, 11, 0.9));
-  }
+  from { filter: drop-shadow(0 0 3px rgba(245, 158, 11, 0.6)); }
+  to { filter: drop-shadow(0 0 5px rgba(245, 158, 11, 0.9)); }
 }
 
-/* Estilos para nodos destacados */
-.react-flow__node.node-highlight .node-container {
-  box-shadow: 0 0 20px rgba(245, 158, 11, 0.7), 0 0 0 2px rgba(245, 158, 11, 0.5) !important;
-  border-color: #f59e0b !important;
-  transform: translateY(-3px);
+/* ================= CONTROLES Y COMPONENTES DE REACTFLOW ================= */
+/* Fondo y viewport */
+.react-flow__background {
+  opacity: 0.6;
+  transition: opacity 0.3s;
 }
 
-/* Animación sutil para los nodos destacados */
-@keyframes subtle-bounce {
-  0%, 100% {
-    transform: translateY(-3px);
-  }
-  50% {
-    transform: translateY(-5px);
-  }
+.react-flow__viewport {
+  transition: transform 0.25s cubic-bezier(0.2, 0, 0.2, 1);
+  will-change: transform;
 }
 
-.react-flow__node.node-highlight .node-container {
-  animation: subtle-bounce 2s ease-in-out infinite;
+/* Controles de ReactFlow */
+.react-flow__controls {
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.react-flow__controls-button {
+  background-color: #2d3748 !important;
+  color: white !important;
+  border: none !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3) !important;
+  transition: background-color 0.2s;
+}
+
+.react-flow__controls-button:hover {
+  background-color: #4a5568 !important;
+}
+
+.react-flow__controls-button svg {
+  fill: white !important;
+}
+
+/* MiniMap personalizado */
+.react-flow__minimap {
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid #4a5568;
+  background-color: rgba(15, 23, 42, 0.8) !important;
+  transition: opacity 0.3s;
+}
+
+/* ================= OPTIMIZACIONES DE RENDIMIENTO ================= */
+/* Optimizaciones para el arrastre */
+.dragging-active * {
+  transition: none !important;
+  animation: none !important;
+}
+
+.dragging-active .react-flow__node {
+  transition: none !important;
+  will-change: transform;
+  animation: none !important;
+}
+
+.dragging-active .react-flow__edge {
+  transition: none !important;
+  animation: none !important;
+}
+
+.dragging-active .react-flow__edge-path {
+  transition: none !important;
+  animation: none !important;
+  stroke-dasharray: 5,5;
+}
+
+/* Optimizaciones para transformación del viewport */
+.viewport-transforming .react-flow__viewport {
+  transition: transform 0.2s ease-out !important;
+}
+
+.viewport-transforming .react-flow__edge,
+.viewport-transforming .react-flow__node,
+.viewport-transforming .react-flow__edge-path {
+  animation: none !important;
+  transition: none !important;
+}
+
+.viewport-transforming .react-flow__edge-path {
+  stroke-width: 1px !important;
+}
+
+.viewport-transforming .node-container,
+.viewport-transforming .react-flow__edge.edge-highlight .react-flow__edge-path,
+.viewport-transforming .react-flow__node.node-highlight .node-container {
+  filter: none !important;
+  box-shadow: none !important;
+  animation: none !important;
+  transform: none !important;
+}
+
+/* ================= ESTADOS ESPECIALES DE NODOS Y ARISTAS ================= */
+/* Nodos y aristas ocultos */
+.react-flow__node[style*="visibility: hidden"],
+.react-flow__edge[style*="visibility: hidden"] {
+  pointer-events: none !important;
+  opacity: 0 !important;
+  display: none !important;
+}
+
+.react-flow__node[style*="visibility: hidden"] {
+  position: absolute !important;
+  touch-action: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  transform: scale(0) !important;
+}
+
+.react-flow__edge[style*="visibility: hidden"] {
+  stroke-width: 0 !important;
+}
+
+/* Nodo siendo arrastrado */
+.react-flow__node[data-dragging="true"] {
+  z-index: 10;
+  filter: drop-shadow(0 0 8px rgba(0, 0, 0, 0.3));
+}
+
+/* Estilo para la arista durante el arrastre */
+.dragging-edge .react-flow__edge-path {
+  stroke-dasharray: 5,5 !important;
+  animation: none !important;
+  transition: none !important;
+}
+
+/* Indicador visual cuando se está recalculando el layout */
+.react-flow__edge.updating .react-flow__edge-path {
+  stroke-dasharray: 5 !important;
+  animation: dash 1s infinite linear;
+}
+
+@keyframes dash {
+  to { stroke-dashoffset: -10; }
 }
